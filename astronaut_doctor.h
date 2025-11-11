@@ -1,0 +1,32 @@
+#pragma once
+
+#include "astronaut.h"
+
+class DoctorAstronaut : public Astronaut {
+private:
+    std::wstring medical_license_number;
+    int years_of_medical_practice;
+
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ar & boost::serialization::base_object<Astronaut>(*this);
+        ar & medical_license_number;
+        ar & years_of_medical_practice;
+    }
+
+public:
+    DoctorAstronaut();
+    DoctorAstronaut(std::wistream& is);
+    DoctorAstronaut(const std::wstring& name, const std::wstring& country,
+                    int spaceflights, int total_days, const std::wstring& specialization,
+                    bool status, const std::wstring& license, int practice_years);
+
+    void writetoconsole() const override;
+
+    std::wstring getMedicalLicense() const { return medical_license_number; }
+    int getPracticeYears() const { return years_of_medical_practice; }
+};
+
+BOOST_CLASS_EXPORT_KEY(DoctorAstronaut)
