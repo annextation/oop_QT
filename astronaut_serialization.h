@@ -5,12 +5,11 @@
 
 // ВСЕ BOOST ИНКЛЮДЫ ТОЛЬКО ЗДЕСЬ
 #include <boost/serialization/access.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/export.hpp>
 #include <boost/serialization/base_object.hpp>
+#include <boost/serialization/export.hpp>
 #include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
-
 
 // СЕРИАЛИЗАЦИЯ ASTRONAUT
 class Astronaut
@@ -19,7 +18,8 @@ class Astronaut
     friend class boost::serialization::access;
 
     template<class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive &ar, const unsigned int version)
+    {
         ar & name;
         ar & country;
         ar & spaceflights_count;
@@ -35,8 +35,9 @@ class DoctorAstronaut
     friend class boost::serialization::access;
 
     template<class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ar & boost::serialization::base_object<Astronaut>(*this);
+    void serialize(Archive &ar, const unsigned int version)
+    {
+        ar &boost::serialization::base_object<Astronaut>(*this);
         ar & medical_license_number;
         ar & years_of_medical_practice;
     }

@@ -1,14 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//#include "utils.h"
 
 using namespace std;
 using namespace placeholders;
 
-DrawingWidget::DrawingWidget(ISS* iss, QWidget *parent)
-    : QWidget(parent), iss(iss)
+DrawingWidget::DrawingWidget(ISS *iss, QWidget *parent)
+    : QWidget(parent)
+    , iss(iss)
 {
-    setMinimumSize(1000, 600);
+    setMinimumSize(1150, 600);
 }
 
 void DrawingWidget::paintEvent(QPaintEvent *event)
@@ -19,48 +19,25 @@ void DrawingWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
 
     drawAstronautTable(painter);
+
 }
 
-void drawAstronautInTable(const shared_ptr<Astronaut>& astronaut, QPainter& painter, int& yPos, int rowHeight) {
-    QString type = "Обычный";
-    QString license = "";
-    QString practiceYears = "";
 
-    auto doctorAstronaut = dynamic_pointer_cast<DoctorAstronaut>(astronaut);
-    if (doctorAstronaut) {
-        type = "Доктор";
-        license = QString::fromStdWString(doctorAstronaut->getMedicalLicense());
-        practiceYears = QString::number(doctorAstronaut->getPracticeYears());
-    }
-
-    painter.drawText(50, yPos, type);
-    painter.drawText(120, yPos, QString::fromStdWString(astronaut->get_name()));
-    painter.drawText(270, yPos, QString::fromStdWString(astronaut->get_country()));
-    painter.drawText(420, yPos, QString::number(astronaut->get_spaceflights_count()));
-    painter.drawText(520, yPos, QString::number(astronaut->get_total_days_in_space()));
-    painter.drawText(620, yPos, QString::fromStdWString(astronaut->get_specialization()));
-    painter.drawText(820, yPos, astronaut->get_current_status() ? "Активный" : "Неактивный");
-    painter.drawText(920, yPos, license);
-    painter.drawText(1020, yPos, practiceYears);
-
-    yPos += rowHeight;
-}
-
-void DrawingWidget::drawAstronautTable(QPainter &painter) const
+void DrawingWidget::drawAstronautTable(QPainter &painter)
 {
-    painter.fillRect(rect(), Qt::white);
+    painter.fillRect(rect(), Qt::black);
 
     QFont titleFont = painter.font();
     titleFont.setPointSize(14);
     titleFont.setBold(true);
     painter.setFont(titleFont);
+    painter.setPen(Qt::white);
 
-    painter.drawText(50, 50, "МКС - УПРАВЛЕНИЕ АСТРОНАВТАМИ");
-
-    painter.drawText(50, 80, QString("Количество астронавтов: %1").arg(iss->getAstronautsCount()));
+    painter.drawText(220, 50, "МКС - УПРАВЛЕНИЕ АСТРОНАВТАМИ");
+    painter.drawText(202, 82, QString("Количество загруженных астронавтов: %1").arg(iss->getAstronautsCount()));
 
     if (iss->getAstronautsCount() == 0) {
-        painter.drawText(50, 120, "На МКС нет астронавтов!");
+        painter.drawText(270, 120, "Астронавтов на МКС нет.");
         return;
     }
 
@@ -82,20 +59,26 @@ void DrawingWidget::drawAstronautTable(QPainter &painter) const
     painter.drawText(1020, yPos, "Практика");
 
     yPos += 30;
-
     painter.drawLine(50, yPos, 1100, yPos);
-    yPos += 10;
+    yPos += 30;
 
     tableFont.setBold(false);
     painter.setFont(tableFont);
 
-    const auto& astronauts = iss->getAstronauts();
-
     int currentYPos = yPos;
     int rowHeight = 25;
 
-    auto drawFunc = bind(drawAstronautInTable, placeholders::_1, ref(painter), ref(currentYPos), rowHeight);
-    for_each(astronauts.begin(), astronauts.end(), drawFunc);
+    auto drawFunc = std::bind(&Astronaut::drawInPainter,
+                              std::placeholders::_1,
+                              std::ref(painter),
+                              std::ref(currentYPos),
+                              rowHeight);
+
+    const auto& astronauts = iss->getAstronauts();
+    std::for_each(astronauts.begin(), astronauts.end(), drawFunc);
+
+    int totalHeight = currentYPos + 20;
+    setMinimumHeight(totalHeight);
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -150,7 +133,7 @@ MainWindow::~MainWindow()
 void MainWindow::updateDisplay()
 {
     drawingWidget->update();
-    qDebug() << "Display updated, astronauts count:" << iss.getAstronautsCount();
+    qDebug() << "Дисплей обновлен, кол-во астронавтов:" << iss.getAstronautsCount();
 }
 
 void MainWindow::on_saveButton_clicked()
@@ -172,7 +155,7 @@ void MainWindow::on_loadButton_clicked()
                                                     "",
                                                     "Binary Files (*.bin)");
     if (!filename.isEmpty()) {
-        iss.load_from_file();
+        iss.load_from_file(filename.toStdWString());
         updateDisplay();
         QMessageBox::information(this, "Успех", "Данные загружены из файла");
     }
@@ -181,9 +164,10 @@ void MainWindow::on_loadButton_clicked()
 void MainWindow::on_clearButton_clicked()
 {
     QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Подтверждение",
+    reply = QMessageBox::question(this,
+                                  "Подтверждение",
                                   "Вы уверены, что хотите удалить всех астронавтов?",
-                                  QMessageBox::Yes | QMessageBox::No); // ИСПРАВЛЕНО
+                                  QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
         iss.delete_astronauts();

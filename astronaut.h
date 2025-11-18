@@ -14,7 +14,8 @@ private:
 
     friend class boost::serialization::access;
     template<class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive &ar, const unsigned int version)
+    {
         ar & name;
         ar & country;
         ar & spaceflights_count;
@@ -25,9 +26,12 @@ private:
 
 public:
     Astronaut();
-    Astronaut(std::wistream& wis);
-    Astronaut(const std::wstring& name, const std::wstring& country,
-              int spaceflights, int total_days, const std::wstring& specialization,
+    Astronaut(std::wistream &wis);
+    Astronaut(const std::wstring &name,
+              const std::wstring &country,
+              int spaceflights,
+              int total_days,
+              const std::wstring &specialization,
               bool status);
     virtual ~Astronaut();
 
@@ -39,6 +43,25 @@ public:
     bool get_current_status() const { return current_status; }
 
     virtual void writetoconsole() const;
+
+    virtual QSize getTextBlockSize(QPainter &painter) const
+    {
+        QFontMetrics metrics(painter.font());
+        return QSize(1100, metrics.height() * 7);
+    }
+
+    virtual void drawInPainter(QPainter &painter, int &yPos, int rowHeight) const
+    {
+        painter.drawText(50, yPos, "Обычный");
+        painter.drawText(120, yPos, QString::fromStdWString(name));
+        painter.drawText(270, yPos, QString::fromStdWString(country));
+        painter.drawText(420, yPos, QString::number(spaceflights_count));
+        painter.drawText(520, yPos, QString::number(total_days_in_space));
+        painter.drawText(620, yPos, QString::fromStdWString(specialization));
+        painter.drawText(820, yPos, get_current_status() ? "Активный" : "Неактивный");
+
+        yPos += rowHeight;
+    }
 };
 
 BOOST_CLASS_EXPORT_KEY(Astronaut)

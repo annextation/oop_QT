@@ -9,20 +9,20 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
-// Кастомный виджет для отрисовки таблицы
 class DrawingWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit DrawingWidget(ISS* iss, QWidget *parent = nullptr);
+    explicit DrawingWidget(ISS *iss, QWidget *parent = nullptr);
+    void updateWidgetSize();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    ISS* iss;
-    void drawAstronautTable(QPainter &painter) const;
+    ISS *iss;
+    void drawAstronautTable(QPainter &painter); // Убрать const
 };
 
 class MainWindow : public QMainWindow

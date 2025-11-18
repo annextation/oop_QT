@@ -26,15 +26,13 @@ FORMS += \
     mainwindow.ui
 
 # Boost configuration
-INCLUDEPATH += "D:\boost_mingv\boost_1_89_0"
-LIBS += -L"D:/boost_mingv/boost_1_89_0/stage/lib"
+INCLUDEPATH += "D:\boost_for_qt\boost_1_89_0"
+LIBS += -L"D:\boost_for_qt\boost_1_89_0\stage\lib"
 
 CONFIG(debug, debug|release) {
     LIBS += -lboost_serialization-mgw12-mt-d-x64-1_89
-    LIBS += -lboost_system-mgw12-mt-d-x64-1_89
 } else {
     LIBS += -lboost_serialization-mgw12-mt-x64-1_89
-    LIBS += -lboost_system-mgw12-mt-x64-1_89
 }
 
 win32: LIBS += -lws2_32

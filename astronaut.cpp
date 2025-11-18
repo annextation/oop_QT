@@ -3,7 +3,8 @@
 
 using namespace std;
 
-Astronaut::Astronaut() {
+Astronaut::Astronaut()
+{
     name = L"Неизвестно";
     country = L"Неизвестно";
     spaceflights_count = 0;
@@ -12,7 +13,8 @@ Astronaut::Astronaut() {
     current_status = true;
 }
 
-Astronaut::Astronaut(std::wistream& wis) {
+Astronaut::Astronaut(std::wistream &wis)
+{
     wcout << L"Имя: ";
     std::getline(wis >> std::ws, this->name);
     wcout << L"Страна: ";
@@ -27,24 +29,30 @@ Astronaut::Astronaut(std::wistream& wis) {
     this->current_status = GetCorrectNumber<bool>(0, 1);
 }
 
-Astronaut::Astronaut(const std::wstring& name, const std::wstring& country,
-                      int spaceflights, int total_days, const std::wstring& specialization,
-                      bool status) {
-     this->name = name;
-     this->country = country;
-     this->spaceflights_count = spaceflights;
-     this->total_days_in_space = total_days;
-     this->specialization = specialization;
-     this->current_status = status;
- }
+Astronaut::Astronaut(const std::wstring &name,
+                     const std::wstring &country,
+                     int spaceflights,
+                     int total_days,
+                     const std::wstring &specialization,
+                     bool status)
+{
+    this->name = name;
+    this->country = country;
+    this->spaceflights_count = spaceflights;
+    this->total_days_in_space = total_days;
+    this->specialization = specialization;
+    this->current_status = status;
+}
 
 Astronaut::~Astronaut() {}
 
-void Astronaut::writetoconsole() const {
-    wcout << L"Имя: " << this->name << endl <<
-        L"Страна: " << this->country << endl <<
-        L"Количество полетов: " << this->spaceflights_count << endl <<
-        L"Общее кол-во дней в космосе: " << this->total_days_in_space << endl <<
-        L"Специализация: " << this->specialization << endl <<
-        L"Текущий статус: " << (this->current_status ? L"Активный" : L"Неактивный") << endl << endl;
+void Astronaut::writetoconsole() const
+{
+    wcout << L"Имя: " << this->name << endl
+          << L"Страна: " << this->country << endl
+          << L"Количество полетов: " << this->spaceflights_count << endl
+          << L"Общее кол-во дней в космосе: " << this->total_days_in_space << endl
+          << L"Специализация: " << this->specialization << endl
+          << L"Текущий статус: " << (this->current_status ? L"Активный" : L"Неактивный") << endl
+          << endl;
 }
