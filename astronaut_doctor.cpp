@@ -31,6 +31,14 @@ DoctorAstronaut::DoctorAstronaut(const std::wstring &name,
     this->years_of_medical_practice = practice_years;
 }
 
+void DoctorAstronaut::drawInPainter(QPainter &painter, int &yPos, int rowHeight) const
+{
+    int startY = yPos;
+    Astronaut::drawInPainter(painter, yPos, rowHeight);
+    painter.drawText(920, startY, QString::fromStdWString(medical_license_number));
+    painter.drawText(1020, startY, QString::number(years_of_medical_practice));
+}
+
 void DoctorAstronaut::writetoconsole() const
 {
     Astronaut::writetoconsole();

@@ -56,3 +56,16 @@ void Astronaut::writetoconsole() const
           << L"Текущий статус: " << (this->current_status ? L"Активный" : L"Неактивный") << endl
           << endl;
 }
+
+void Astronaut::drawInPainter(QPainter &painter, int &yPos, int rowHeight) const
+{
+    painter.drawText(50, yPos, "Обычный");
+    painter.drawText(120, yPos, QString::fromStdWString(name));
+    painter.drawText(270, yPos, QString::fromStdWString(country));
+    painter.drawText(420, yPos, QString::number(spaceflights_count));
+    painter.drawText(520, yPos, QString::number(total_days_in_space));
+    painter.drawText(620, yPos, QString::fromStdWString(specialization));
+    painter.drawText(820, yPos, get_current_status() ? "Активный" : "Неактивный");
+
+    yPos += rowHeight;
+}
