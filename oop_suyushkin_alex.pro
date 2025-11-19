@@ -12,7 +12,8 @@ SOURCES += \
     astronaut.cpp \
     astronaut_doctor.cpp \
     ISS.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    AstronautEditDialog.cpp
 
 HEADERS += \
     headers.h \
@@ -20,7 +21,8 @@ HEADERS += \
     astronaut_doctor.h \
     ISS.h \
     utils.h \
-    mainwindow.h
+    mainwindow.h \
+    AstronautEditDialog.h
 
 FORMS += \
     mainwindow.ui

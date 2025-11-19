@@ -19,19 +19,17 @@ void DrawingWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
 
     drawAstronautTable(painter);
-
 }
-
 
 void DrawingWidget::drawAstronautTable(QPainter &painter)
 {
-    painter.fillRect(rect(), Qt::black);
+    painter.fillRect(rect(), Qt::white);
 
     QFont titleFont = painter.font();
     titleFont.setPointSize(14);
     titleFont.setBold(true);
     painter.setFont(titleFont);
-    painter.setPen(Qt::white);
+    painter.setPen(Qt::black);
 
     painter.drawText(220, 50, "МКС - УПРАВЛЕНИЕ АСТРОНАВТАМИ");
     painter.drawText(202, 82, QString("Количество загруженных астронавтов: %1").arg(iss->getAstronautsCount()));
@@ -88,9 +86,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     setlocale(LC_ALL, "rus");
-
     setWindowTitle("МКС - Управление астронавтами");
-
     setupUI();
 }
 
@@ -107,10 +103,12 @@ void MainWindow::setupUI()
     saveButton = new QPushButton("Сохранить", controlGroup);
     loadButton = new QPushButton("Загрузить", controlGroup);
     clearButton = new QPushButton("Очистить", controlGroup);
+    editButton = new QPushButton("Редактировать", controlGroup);
 
     buttonLayout->addWidget(saveButton);
     buttonLayout->addWidget(loadButton);
     buttonLayout->addWidget(clearButton);
+    buttonLayout->addWidget(editButton);
 
     scrollArea = new QScrollArea(centralWidget);
     drawingWidget = new DrawingWidget(&iss, scrollArea);
@@ -123,6 +121,7 @@ void MainWindow::setupUI()
     connect(saveButton, &QPushButton::clicked, this, &MainWindow::on_saveButton_clicked);
     connect(loadButton, &QPushButton::clicked, this, &MainWindow::on_loadButton_clicked);
     connect(clearButton, &QPushButton::clicked, this, &MainWindow::on_clearButton_clicked);
+    connect(editButton, &QPushButton::clicked, this, &MainWindow::on_editButton_clicked);
 }
 
 MainWindow::~MainWindow()
@@ -133,7 +132,6 @@ MainWindow::~MainWindow()
 void MainWindow::updateDisplay()
 {
     drawingWidget->update();
-    qDebug() << "Дисплей обновлен, кол-во астронавтов:" << iss.getAstronautsCount();
 }
 
 void MainWindow::on_saveButton_clicked()
@@ -173,5 +171,14 @@ void MainWindow::on_clearButton_clicked()
         iss.delete_astronauts();
         updateDisplay();
         QMessageBox::information(this, "Успех", "Все астронавты удалены");
+    }
+}
+
+void MainWindow::on_editButton_clicked()
+{
+    AstronautEditDialog dialog(&iss, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        updateDisplay();
+        QMessageBox::information(this, "Успех", "Изменения применены");
     }
 }

@@ -1,7 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "headers.h"
 #include "ISS.h"
+#include "AstronautEditDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -22,7 +24,7 @@ protected:
 
 private:
     ISS *iss;
-    void drawAstronautTable(QPainter &painter); // Убрать const
+    void drawAstronautTable(QPainter &painter);
 };
 
 class MainWindow : public QMainWindow
@@ -37,6 +39,7 @@ private slots:
     void on_saveButton_clicked();
     void on_loadButton_clicked();
     void on_clearButton_clicked();
+    void on_editButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -49,6 +52,7 @@ private:
     QPushButton *saveButton;
     QPushButton *loadButton;
     QPushButton *clearButton;
+    QPushButton *editButton;
 
     void updateDisplay();
     void setupUI();

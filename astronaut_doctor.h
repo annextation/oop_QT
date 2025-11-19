@@ -1,5 +1,6 @@
 #pragma once
 
+#include "headers.h"
 #include "astronaut.h"
 
 class DoctorAstronaut : public Astronaut

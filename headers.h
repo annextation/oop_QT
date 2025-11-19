@@ -1,15 +1,18 @@
 #pragma once
 
-#include <algorithm>
-#include <codecvt>
-#include <fstream>
-#include <functional>
+// Стандартные библиотеки C++
 #include <iostream>
-#include <memory>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
+#include <algorithm>
+#include <functional>
+#include <codecvt>
+#include <locale>
 
+// Boost serialization
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/access.hpp>
@@ -19,13 +22,22 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include <QFileDialog>
-#include <QGroupBox>
-#include <QHBoxLayout>
+// Qt Core
+#include <QApplication>
 #include <QMainWindow>
-#include <QMessageBox>
+#include <QWidget>
+#include <QDialog>
 #include <QPainter>
-#include <QPushButton>
 #include <QScrollArea>
 #include <QVBoxLayout>
-#include <QWidget>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QGroupBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QRadioButton>
+#include <QButtonGroup>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QIntValidator>
