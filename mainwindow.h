@@ -16,14 +16,17 @@ class DrawingWidget : public QWidget
     Q_OBJECT
 
 public:
+    ISS *iss;
+
+    explicit DrawingWidget(QWidget *parent = nullptr);
     explicit DrawingWidget(ISS *iss, QWidget *parent = nullptr);
+
     void updateWidgetSize();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    ISS *iss;
     void drawAstronautTable(QPainter &painter);
 };
 
@@ -45,17 +48,7 @@ private:
     Ui::MainWindow *ui;
     ISS iss;
 
-    QWidget *centralWidget;
-    DrawingWidget *drawingWidget;
-    QScrollArea *scrollArea;
-
-    QPushButton *saveButton;
-    QPushButton *loadButton;
-    QPushButton *clearButton;
-    QPushButton *editButton;
-
     void updateDisplay();
-    void setupUI();
 };
 
 #endif // MAINWINDOW_H

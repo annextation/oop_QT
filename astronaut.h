@@ -24,6 +24,9 @@ private:
         ar & current_status;
     }
 
+protected:
+
+
 public:
     Astronaut();
     Astronaut(std::wistream &wis);
@@ -51,6 +54,42 @@ public:
     }
 
     virtual void drawInPainter(QPainter &painter, int &yPos, int rowHeight) const;
+
+    virtual std::shared_ptr<Astronaut> createFromUIFields(
+        const std::wstring& name,
+        const std::wstring& country,
+        int spaceflights,
+        int totalDays,
+        const std::wstring& specialization,
+        bool status) const;
+
+    virtual void updateFromUIFields(
+        const std::wstring& name,
+        const std::wstring& country,
+        int spaceflights,
+        int totalDays,
+        const std::wstring& specialization,
+        bool status);
+
+    virtual void getUIFields(std::wstring& name,
+                             std::wstring& country,
+                             int& spaceflights,
+                             int& totalDays,
+                             std::wstring& specialization,
+                             bool& status) const;
+
+    virtual void fillUIInputs(QLineEdit* nameEdit,
+                              QLineEdit* countryEdit,
+                              QLineEdit* specializationEdit,
+                              QLineEdit* spaceflightsEdit,
+                              QLineEdit* totalDaysEdit) const;
+
+    virtual void setupUIFields(QRadioButton* regularRadio,
+                               QRadioButton* doctorRadio,
+                               QLabel* medicalLicenseLabel,
+                               QLineEdit* medicalLicenseEdit,
+                               QLabel* practiceYearsLabel,
+                               QLineEdit* practiceYearsEdit) const;
 };
 
 BOOST_CLASS_EXPORT_KEY(Astronaut)

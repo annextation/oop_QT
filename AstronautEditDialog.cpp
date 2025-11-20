@@ -1,252 +1,228 @@
 #include "AstronautEditDialog.h"
+#include "ui_AstronautEditDialog.h"
 
 AstronautEditDialog::AstronautEditDialog(ISS* iss, QWidget *parent)
-    : QDialog(parent), iss(iss)
+    : QDialog(parent),
+    ui(new Ui::AstronautEditDialog),
+    iss(iss)
 {
-    setupUI();
+    ui->setupUi(this);
+    setupConnections();
     updateAstronautList();
 
-    connect(astronautList, &QListWidget::currentRowChanged, this, &AstronautEditDialog::onAstronautSelectionChanged);
-    connect(addRegularAstronautButton, &QPushButton::clicked, this, &AstronautEditDialog::onAddRegularAstronautClicked);
-    connect(addDoctorAstronautButton, &QPushButton::clicked, this, &AstronautEditDialog::onAddDoctorAstronautClicked);
-    connect(deleteButton, &QPushButton::clicked, this, &AstronautEditDialog::onDeleteButtonClicked);
-    connect(closeButton, &QPushButton::clicked, this, &AstronautEditDialog::onCloseButtonClicked);
-    connect(astronautTypeGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
-            this, &AstronautEditDialog::onAstronautTypeChanged);
+    ui->spaceflightsEdit->setValidator(new QIntValidator(0, 99, this));
+    ui->totalDaysEdit->setValidator(new QIntValidator(0, 99, this));
+    ui->practiceYearsEdit->setValidator(new QIntValidator(0, 70, this));
 
-    connect(nameEdit, &QLineEdit::editingFinished, this, &AstronautEditDialog::onInputFieldChanged);
-    connect(countryEdit, &QLineEdit::editingFinished, this, &AstronautEditDialog::onInputFieldChanged);
-    connect(specializationEdit, &QLineEdit::editingFinished, this, &AstronautEditDialog::onInputFieldChanged);
-    connect(spaceflightsEdit, &QLineEdit::editingFinished, this, &AstronautEditDialog::onInputFieldChanged);
-    connect(totalDaysEdit, &QLineEdit::editingFinished, this, &AstronautEditDialog::onInputFieldChanged);
-    connect(medicalLicenseEdit, &QLineEdit::editingFinished, this, &AstronautEditDialog::onInputFieldChanged);
-    connect(practiceYearsEdit, &QLineEdit::editingFinished, this, &AstronautEditDialog::onInputFieldChanged);
+    showDoctorFields(false);
 }
 
 AstronautEditDialog::~AstronautEditDialog()
 {
+    delete ui;
 }
 
-void AstronautEditDialog::setupUI()
+void AstronautEditDialog::setupConnections()
 {
-    setWindowTitle("Редактирование списка астронавтов");
-    setMinimumSize(900, 600);
+    connect(ui->astronautList, &QListWidget::currentRowChanged,
+            this, &AstronautEditDialog::onAstronautSelectionChanged);
+    connect(ui->addRegularAstronautButton, &QPushButton::clicked,
+            this, &AstronautEditDialog::onAddRegularAstronautClicked);
+    connect(ui->addDoctorAstronautButton, &QPushButton::clicked,
+            this, &AstronautEditDialog::onAddDoctorAstronautClicked);
+    connect(ui->deleteButton, &QPushButton::clicked,
+            this, &AstronautEditDialog::onDeleteButtonClicked);
+    connect(ui->closeButton, &QPushButton::clicked,
+            this, &AstronautEditDialog::onCloseButtonClicked);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    connect(ui->regularAstronautRadio, &QRadioButton::clicked,
+            this, &AstronautEditDialog::onAstronautTypeChanged);
+    connect(ui->doctorAstronautRadio, &QRadioButton::clicked,
+            this, &AstronautEditDialog::onAstronautTypeChanged);
 
-    QGroupBox *listGroup = new QGroupBox("Список астронавтов", this);
-    QVBoxLayout *listLayout = new QVBoxLayout(listGroup);
-    astronautList = new QListWidget(listGroup);
-    astronautList->setMinimumHeight(180);
-    listLayout->addWidget(astronautList);
-
-    QHBoxLayout *bottomLayout = new QHBoxLayout();
-
-    QGroupBox *inputGroup = new QGroupBox("Данные астронавта", this);
-    inputGroup->setMinimumWidth(400);
-    QGridLayout *inputLayout = new QGridLayout(inputGroup);
-
-    inputLayout->addWidget(new QLabel("Имя:"), 0, 0);
-    nameEdit = new QLineEdit(inputGroup);
-    inputLayout->addWidget(nameEdit, 0, 1);
-
-    inputLayout->addWidget(new QLabel("Страна:"), 1, 0);
-    countryEdit = new QLineEdit(inputGroup);
-    inputLayout->addWidget(countryEdit, 1, 1);
-
-    inputLayout->addWidget(new QLabel("Специализация:"), 2, 0);
-    specializationEdit = new QLineEdit(inputGroup);
-    inputLayout->addWidget(specializationEdit, 2, 1);
-
-    inputLayout->addWidget(new QLabel("Кол-во полетов:"), 3, 0);
-    spaceflightsEdit = new QLineEdit(inputGroup);
-    spaceflightsEdit->setValidator(new QIntValidator(0, 99, this));
-    inputLayout->addWidget(spaceflightsEdit, 3, 1);
-
-    inputLayout->addWidget(new QLabel("Дней в космосе:"), 4, 0);
-    totalDaysEdit = new QLineEdit(inputGroup);
-    totalDaysEdit->setValidator(new QIntValidator(0, 99, this));
-    inputLayout->addWidget(totalDaysEdit, 4, 1);
-
-    medicalLicenseLabel = new QLabel("Мед. лицензия:", inputGroup);
-    inputLayout->addWidget(medicalLicenseLabel, 5, 0);
-    medicalLicenseEdit = new QLineEdit(inputGroup);
-    inputLayout->addWidget(medicalLicenseEdit, 5, 1);
-
-    practiceYearsLabel = new QLabel("Лет практики:", inputGroup);
-    inputLayout->addWidget(practiceYearsLabel, 6, 0);
-    practiceYearsEdit = new QLineEdit(inputGroup);
-    practiceYearsEdit->setValidator(new QIntValidator(0, 70, this));
-    inputLayout->addWidget(practiceYearsEdit, 6, 1);
-
-    showDoctorFields(false);
-
-    QGroupBox *actionGroup = new QGroupBox("Действия", this);
-    actionGroup->setMinimumWidth(250);
-    QVBoxLayout *actionLayout = new QVBoxLayout(actionGroup);
-
-    QGroupBox *typeGroup = new QGroupBox("Тип астронавта", actionGroup);
-    QVBoxLayout *typeLayout = new QVBoxLayout(typeGroup);
-
-    regularAstronautRadio = new QRadioButton("Обычный астронавт", typeGroup);
-    doctorAstronautRadio = new QRadioButton("Астронавт-врач", typeGroup);
-    regularAstronautRadio->setChecked(true);
-
-    astronautTypeGroup = new QButtonGroup(typeGroup);
-    astronautTypeGroup->addButton(regularAstronautRadio);
-    astronautTypeGroup->addButton(doctorAstronautRadio);
-
-    typeLayout->addWidget(regularAstronautRadio);
-    typeLayout->addWidget(doctorAstronautRadio);
-
-    QVBoxLayout *buttonLayout = new QVBoxLayout();
-
-    addRegularAstronautButton = new QPushButton("Добавить обычного", actionGroup);
-    addDoctorAstronautButton = new QPushButton("Добавить врача", actionGroup);
-    deleteButton = new QPushButton("Удалить", actionGroup);
-    closeButton = new QPushButton("Закрыть", actionGroup);
-
-    buttonLayout->addWidget(addRegularAstronautButton);
-    buttonLayout->addWidget(addDoctorAstronautButton);
-    buttonLayout->addWidget(deleteButton);
-    buttonLayout->addWidget(closeButton);
-    buttonLayout->addStretch();
-
-    actionLayout->addWidget(typeGroup);
-    actionLayout->addLayout(buttonLayout);
-
-    bottomLayout->addWidget(inputGroup, 2);
-    bottomLayout->addWidget(actionGroup, 1);
-
-    mainLayout->addWidget(listGroup, 1);
-    mainLayout->addLayout(bottomLayout, 2);
+    connect(ui->nameEdit, &QLineEdit::editingFinished,
+            this, &AstronautEditDialog::onInputFieldChanged);
+    connect(ui->countryEdit, &QLineEdit::editingFinished,
+            this, &AstronautEditDialog::onInputFieldChanged);
+    connect(ui->specializationEdit, &QLineEdit::editingFinished,
+            this, &AstronautEditDialog::onInputFieldChanged);
+    connect(ui->spaceflightsEdit, &QLineEdit::editingFinished,
+            this, &AstronautEditDialog::onInputFieldChanged);
+    connect(ui->totalDaysEdit, &QLineEdit::editingFinished,
+            this, &AstronautEditDialog::onInputFieldChanged);
+    connect(ui->medicalLicenseEdit, &QLineEdit::editingFinished,
+            this, &AstronautEditDialog::onInputFieldChanged);
+    connect(ui->practiceYearsEdit, &QLineEdit::editingFinished,
+            this, &AstronautEditDialog::onInputFieldChanged);
 }
 
 void AstronautEditDialog::updateAstronautList()
 {
-    astronautList->clear();
-
+    ui->astronautList->clear();
     const auto& astronauts = iss->getAstronauts();
 
-    int index = 0;
-    std::for_each(astronauts.begin(), astronauts.end(), [this, &index](const std::shared_ptr<Astronaut>& astronaut) {
-        QString itemText = QString("%1. %2")
+    size_t index = 0;
+    auto updateLambda = [&](const std::shared_ptr<Astronaut>& astronaut) {
+        QString itemText = QString("%1. %2 [%3]")
         .arg(index + 1)
-            .arg(QString::fromStdWString(astronaut->get_name()));
+            .arg(QString::fromStdWString(astronaut->get_name()))
+            .arg(std::dynamic_pointer_cast<DoctorAstronaut>(astronaut) ?
+                     "Астронавт-врач" : "Обычный");
 
-        if (auto doctorAstronaut = std::dynamic_pointer_cast<DoctorAstronaut>(astronaut)) {
-            itemText += " [Астронавт-врач]";
-        } else {
-            itemText += " [Обычный]";
-        }
-
-        astronautList->addItem(itemText);
+        ui->astronautList->addItem(itemText);
         index++;
-    });
+    };
+
+    std::for_each(astronauts.begin(), astronauts.end(), updateLambda);
 }
 
 void AstronautEditDialog::clearInputFields()
 {
-    nameEdit->clear();
-    countryEdit->clear();
-    specializationEdit->clear();
-    spaceflightsEdit->clear();
-    totalDaysEdit->clear();
-    medicalLicenseEdit->clear();
-    practiceYearsEdit->clear();
+    ui->nameEdit->clear();
+    ui->countryEdit->clear();
+    ui->specializationEdit->clear();
+    ui->spaceflightsEdit->clear();
+    ui->totalDaysEdit->clear();
+    ui->medicalLicenseEdit->clear();
+    ui->practiceYearsEdit->clear();
 }
 
 void AstronautEditDialog::showDoctorFields(bool show)
 {
-    medicalLicenseLabel->setVisible(show);
-    medicalLicenseEdit->setVisible(show);
-    practiceYearsLabel->setVisible(show);
-    practiceYearsEdit->setVisible(show);
+    ui->medicalLicenseLabel->setVisible(show);
+    ui->medicalLicenseEdit->setVisible(show);
+    ui->practiceYearsLabel->setVisible(show);
+    ui->practiceYearsEdit->setVisible(show);
 }
 
 void AstronautEditDialog::fillInputFields(const std::shared_ptr<Astronaut>& astronaut)
 {
     if (!astronaut) return;
 
-    nameEdit->setText(QString::fromStdWString(astronaut->get_name()));
-    countryEdit->setText(QString::fromStdWString(astronaut->get_country()));
-    specializationEdit->setText(QString::fromStdWString(astronaut->get_specialization()));
-    spaceflightsEdit->setText(QString::number(astronaut->get_spaceflights_count()));
-    totalDaysEdit->setText(QString::number(astronaut->get_total_days_in_space()));
+    // Получаем базовые данные через публичные методы
+    std::wstring name, country, specialization;
+    int spaceflights, totalDays;
+    bool status;
 
-    if (auto doctorAstronaut = std::dynamic_pointer_cast<DoctorAstronaut>(astronaut)) {
-        doctorAstronautRadio->setChecked(true);
+    astronaut->getUIFields(name, country, spaceflights, totalDays, specialization, status);
+
+    // Заполняем UI
+    ui->nameEdit->setText(QString::fromStdWString(name));
+    ui->countryEdit->setText(QString::fromStdWString(country));
+    ui->specializationEdit->setText(QString::fromStdWString(specialization));
+    ui->spaceflightsEdit->setText(QString::number(spaceflights));
+    ui->totalDaysEdit->setText(QString::number(totalDays));
+
+    // Настраиваем тип астронавта и медицинские поля
+    if (auto doctor = std::dynamic_pointer_cast<DoctorAstronaut>(astronaut)) {
+        ui->doctorAstronautRadio->setChecked(true);
         showDoctorFields(true);
-        medicalLicenseEdit->setText(QString::fromStdWString(doctorAstronaut->getMedicalLicense()));
-        practiceYearsEdit->setText(QString::number(doctorAstronaut->getPracticeYears()));
+
+        std::wstring license;
+        int practiceYears;
+        doctor->getMedicalData(license, practiceYears);
+
+        ui->medicalLicenseEdit->setText(QString::fromStdWString(license));
+        ui->practiceYearsEdit->setText(QString::number(practiceYears));
     } else {
-        regularAstronautRadio->setChecked(true);
+        ui->regularAstronautRadio->setChecked(true);
         showDoctorFields(false);
     }
 }
 
 std::shared_ptr<Astronaut> AstronautEditDialog::createAstronautFromInput()
 {
-    std::wstring name = nameEdit->text().toStdWString();
-    std::wstring country = countryEdit->text().toStdWString();
-    std::wstring specialization = specializationEdit->text().toStdWString();
-    int spaceflights = spaceflightsEdit->text().isEmpty() ? 0 : spaceflightsEdit->text().toInt();
-    int totalDays = totalDaysEdit->text().isEmpty() ? 0 : totalDaysEdit->text().toInt();
+    // Получаем общие данные
+    std::wstring name = ui->nameEdit->text().toStdWString();
+    std::wstring country = ui->countryEdit->text().toStdWString();
+    std::wstring specialization = ui->specializationEdit->text().toStdWString();
+    int spaceflights = ui->spaceflightsEdit->text().isEmpty() ? 0 : ui->spaceflightsEdit->text().toInt();
+    int totalDays = ui->totalDaysEdit->text().isEmpty() ? 0 : ui->totalDaysEdit->text().toInt();
     bool status = true;
 
-    if (doctorAstronautRadio->isChecked()) {
-        std::wstring license = medicalLicenseEdit->text().toStdWString();
-        int practiceYears = practiceYearsEdit->text().isEmpty() ? 0 : practiceYearsEdit->text().toInt();
-        return std::make_shared<DoctorAstronaut>(name, country, spaceflights, totalDays, specialization, status, license, practiceYears);
+    // Создаем астронавта нужного типа
+    std::shared_ptr<Astronaut> astronaut;
+    if (ui->doctorAstronautRadio->isChecked()) {
+        astronaut = std::make_shared<DoctorAstronaut>()->createFromUIFields(
+            name, country, spaceflights, totalDays, specialization, status);
+
+        // Устанавливаем медицинские данные
+        std::wstring license = ui->medicalLicenseEdit->text().toStdWString();
+        int practiceYears = ui->practiceYearsEdit->text().isEmpty() ? 0 : ui->practiceYearsEdit->text().toInt();
+
+        if (auto doctor = std::dynamic_pointer_cast<DoctorAstronaut>(astronaut)) {
+            doctor->setMedicalData(license, practiceYears);
+        }
     } else {
-        return std::make_shared<Astronaut>(name, country, spaceflights, totalDays, specialization, status);
+        astronaut = std::make_shared<Astronaut>()->createFromUIFields(
+            name, country, spaceflights, totalDays, specialization, status);
     }
+
+    return astronaut;
 }
 
 void AstronautEditDialog::updateSelectedAstronaut()
 {
-    int currentRow = astronautList->currentRow();
+    int currentRow = ui->astronautList->currentRow();
     if (currentRow >= 0 && currentRow < static_cast<int>(iss->getAstronautsCount())) {
         auto& astronauts = const_cast<std::vector<std::shared_ptr<Astronaut>>&>(iss->getAstronauts());
-        astronauts[currentRow] = createAstronautFromInput();
+        auto astronaut = astronauts[currentRow];
+
+        std::wstring name = ui->nameEdit->text().toStdWString();
+        std::wstring country = ui->countryEdit->text().toStdWString();
+        std::wstring specialization = ui->specializationEdit->text().toStdWString();
+        int spaceflights = ui->spaceflightsEdit->text().isEmpty() ? 0 : ui->spaceflightsEdit->text().toInt();
+        int totalDays = ui->totalDaysEdit->text().isEmpty() ? 0 : ui->totalDaysEdit->text().toInt();
+        bool status = true;
+
+        astronaut->updateFromUIFields(name, country, spaceflights, totalDays, specialization, status);
+
+        if (auto doctor = std::dynamic_pointer_cast<DoctorAstronaut>(astronaut)) {
+            std::wstring license = ui->medicalLicenseEdit->text().toStdWString();
+            int practiceYears = ui->practiceYearsEdit->text().isEmpty() ? 0 : ui->practiceYearsEdit->text().toInt();
+            doctor->setMedicalData(license, practiceYears);
+        }
+
         updateAstronautList();
-        astronautList->setCurrentRow(currentRow);
+        ui->astronautList->setCurrentRow(currentRow);
     }
 }
 
 void AstronautEditDialog::onAddRegularAstronautClicked()
 {
-    auto newAstronaut = std::make_shared<Astronaut>(L"Новый астронавт", L"", 0, 0, L"", true);
+    auto newAstronaut = std::make_shared<Astronaut>()->createFromUIFields(
+        L"Новый астронавт", L"", 0, 0, L"", true);
     iss->addAstronaut(newAstronaut);
 
     updateAstronautList();
-    int newIndex = astronautList->count() - 1;
-    astronautList->setCurrentRow(newIndex);
+    int newIndex = ui->astronautList->count() - 1;
+    ui->astronautList->setCurrentRow(newIndex);
 
     clearInputFields();
-    regularAstronautRadio->setChecked(true);
+    ui->regularAstronautRadio->setChecked(true);
     showDoctorFields(false);
-    nameEdit->setFocus();
+    ui->nameEdit->setFocus();
 }
 
 void AstronautEditDialog::onAddDoctorAstronautClicked()
 {
-    auto newAstronaut = std::make_shared<DoctorAstronaut>(L"Новый астронавт-врач", L"", 0, 0, L"", true, L"", 0);
+    auto newAstronaut = std::make_shared<DoctorAstronaut>()->createFromUIFields(
+        L"Новый астронавт-врач", L"", 0, 0, L"", true);
     iss->addAstronaut(newAstronaut);
 
     updateAstronautList();
-    int newIndex = astronautList->count() - 1;
-    astronautList->setCurrentRow(newIndex);
+    int newIndex = ui->astronautList->count() - 1;
+    ui->astronautList->setCurrentRow(newIndex);
 
     clearInputFields();
-    doctorAstronautRadio->setChecked(true);
+    ui->doctorAstronautRadio->setChecked(true);
     showDoctorFields(true);
-    nameEdit->setFocus();
+    ui->nameEdit->setFocus();
 }
 
 void AstronautEditDialog::onDeleteButtonClicked()
 {
-    int currentRow = astronautList->currentRow();
+    int currentRow = ui->astronautList->currentRow();
     if (currentRow == -1) {
         QMessageBox::warning(this, "Ошибка", "Выберите астронавта для удаления");
         return;
@@ -262,11 +238,11 @@ void AstronautEditDialog::onDeleteButtonClicked()
         astronauts.erase(astronauts.begin() + currentRow);
         updateAstronautList();
 
-        if (astronautList->count() > 0) {
-            if (currentRow >= astronautList->count()) {
-                currentRow = astronautList->count() - 1;
+        if (ui->astronautList->count() > 0) {
+            if (currentRow >= ui->astronautList->count()) {
+                currentRow = ui->astronautList->count() - 1;
             }
-            astronautList->setCurrentRow(currentRow);
+            ui->astronautList->setCurrentRow(currentRow);
         } else {
             clearInputFields();
         }
@@ -280,7 +256,7 @@ void AstronautEditDialog::onCloseButtonClicked()
 
 void AstronautEditDialog::onAstronautSelectionChanged()
 {
-    int currentRow = astronautList->currentRow();
+    int currentRow = ui->astronautList->currentRow();
     if (currentRow >= 0 && currentRow < static_cast<int>(iss->getAstronautsCount())) {
         const auto& astronauts = iss->getAstronauts();
         fillInputFields(astronauts[currentRow]);
@@ -291,9 +267,9 @@ void AstronautEditDialog::onAstronautSelectionChanged()
 
 void AstronautEditDialog::onAstronautTypeChanged()
 {
-    showDoctorFields(doctorAstronautRadio->isChecked());
+    showDoctorFields(ui->doctorAstronautRadio->isChecked());
 
-    int currentRow = astronautList->currentRow();
+    int currentRow = ui->astronautList->currentRow();
     if (currentRow >= 0 && currentRow < static_cast<int>(iss->getAstronautsCount())) {
         updateSelectedAstronaut();
     }
@@ -301,7 +277,7 @@ void AstronautEditDialog::onAstronautTypeChanged()
 
 void AstronautEditDialog::onInputFieldChanged()
 {
-    int currentRow = astronautList->currentRow();
+    int currentRow = ui->astronautList->currentRow();
     if (currentRow >= 0 && currentRow < static_cast<int>(iss->getAstronautsCount())) {
         updateSelectedAstronaut();
     }

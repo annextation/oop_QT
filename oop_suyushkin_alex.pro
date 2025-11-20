@@ -25,7 +25,8 @@ HEADERS += \
     AstronautEditDialog.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    AstronautEditDialog.ui
 
 # Boost configuration
 INCLUDEPATH += "D:\boost_for_qt\boost_1_89_0"

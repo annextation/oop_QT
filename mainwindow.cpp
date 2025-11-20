@@ -4,6 +4,13 @@
 using namespace std;
 using namespace placeholders;
 
+DrawingWidget::DrawingWidget(QWidget *parent)
+    : QWidget(parent)
+    , iss(nullptr)
+{
+    setMinimumSize(1150, 600);
+}
+
 DrawingWidget::DrawingWidget(ISS *iss, QWidget *parent)
     : QWidget(parent)
     , iss(iss)
@@ -14,6 +21,8 @@ DrawingWidget::DrawingWidget(ISS *iss, QWidget *parent)
 void DrawingWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
+
+    if (!iss) return;
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -32,9 +41,14 @@ void DrawingWidget::drawAstronautTable(QPainter &painter)
     painter.setPen(Qt::black);
 
     painter.drawText(220, 50, "МКС - УПРАВЛЕНИЕ АСТРОНАВТАМИ");
-    painter.drawText(202, 82, QString("Количество загруженных астронавтов: %1").arg(iss->getAstronautsCount()));
 
-    if (iss->getAstronautsCount() == 0) {
+    if (iss) {
+        painter.drawText(202, 82, QString("Количество загруженных астронавтов: %1").arg(iss->getAstronautsCount()));
+    } else {
+        painter.drawText(202, 82, "Количество загруженных астронавтов: 0");
+    }
+
+    if (!iss || iss->getAstronautsCount() == 0) {
         painter.drawText(270, 120, "Астронавтов на МКС нет.");
         return;
     }
@@ -66,14 +80,12 @@ void DrawingWidget::drawAstronautTable(QPainter &painter)
     int currentYPos = yPos;
     int rowHeight = 25;
 
-    auto drawFunc = std::bind(&Astronaut::drawInPainter,
-                              std::placeholders::_1,
-                              std::ref(painter),
-                              std::ref(currentYPos),
-                              rowHeight);
+    auto drawLambda = [&](const std::shared_ptr<Astronaut>& astronaut) {
+        astronaut->drawInPainter(painter, currentYPos, rowHeight);
+    };
 
     const auto& astronauts = iss->getAstronauts();
-    std::for_each(astronauts.begin(), astronauts.end(), drawFunc);
+    std::for_each(astronauts.begin(), astronauts.end(), drawLambda);
 
     int totalHeight = currentYPos + 20;
     setMinimumHeight(totalHeight);
@@ -87,41 +99,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     setlocale(LC_ALL, "rus");
     setWindowTitle("МКС - Управление астронавтами");
-    setupUI();
-}
 
-void MainWindow::setupUI()
-{
-    centralWidget = new QWidget(this);
-    setCentralWidget(centralWidget);
-
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
-
-    QGroupBox *controlGroup = new QGroupBox("Управление МКС", centralWidget);
-    QHBoxLayout *buttonLayout = new QHBoxLayout(controlGroup);
-
-    saveButton = new QPushButton("Сохранить", controlGroup);
-    loadButton = new QPushButton("Загрузить", controlGroup);
-    clearButton = new QPushButton("Очистить", controlGroup);
-    editButton = new QPushButton("Редактировать", controlGroup);
-
-    buttonLayout->addWidget(saveButton);
-    buttonLayout->addWidget(loadButton);
-    buttonLayout->addWidget(clearButton);
-    buttonLayout->addWidget(editButton);
-
-    scrollArea = new QScrollArea(centralWidget);
-    drawingWidget = new DrawingWidget(&iss, scrollArea);
-    scrollArea->setWidget(drawingWidget);
-    scrollArea->setWidgetResizable(true);
-
-    mainLayout->addWidget(controlGroup);
-    mainLayout->addWidget(scrollArea);
-
-    connect(saveButton, &QPushButton::clicked, this, &MainWindow::on_saveButton_clicked);
-    connect(loadButton, &QPushButton::clicked, this, &MainWindow::on_loadButton_clicked);
-    connect(clearButton, &QPushButton::clicked, this, &MainWindow::on_clearButton_clicked);
-    connect(editButton, &QPushButton::clicked, this, &MainWindow::on_editButton_clicked);
+    ui->drawingWidget->iss = &iss;
 }
 
 MainWindow::~MainWindow()
@@ -131,7 +110,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::updateDisplay()
 {
-    drawingWidget->update();
+    ui->drawingWidget->update();
 }
 
 void MainWindow::on_saveButton_clicked()
