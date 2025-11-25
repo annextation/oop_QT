@@ -3,6 +3,8 @@
 #include "headers.h"
 #include "astronaut.h"
 
+class AstronautEditDialog;
+
 class DoctorAstronaut : public Astronaut
 {
 private:
@@ -44,37 +46,10 @@ public:
 
     void drawInPainter(QPainter &painter, int &yPos, int rowHeight) const override;
 
-    std::shared_ptr<Astronaut> createFromUIFields(
-        const std::wstring& name,
-        const std::wstring& country,
-        int spaceflights,
-        int totalDays,
-        const std::wstring& specialization,
-        bool status) const override;
+    void updateDialogFields(AstronautEditDialog* dialog) const override;
+    void updateFromDialogFields(AstronautEditDialog* dialog) override;
 
-    void updateFromUIFields(
-        const std::wstring& name,
-        const std::wstring& country,
-        int spaceflights,
-        int totalDays,
-        const std::wstring& specialization,
-        bool status) override;
-
-    void setMedicalData(const std::wstring& license, int practiceYears);
-    void getMedicalData(std::wstring& license, int& practiceYears) const;
-
-    void fillUIInputs(QLineEdit* nameEdit,
-                      QLineEdit* countryEdit,
-                      QLineEdit* specializationEdit,
-                      QLineEdit* spaceflightsEdit,
-                      QLineEdit* totalDaysEdit) const override;
-
-    void setupUIFields(QRadioButton* regularRadio,
-                       QRadioButton* doctorRadio,
-                       QLabel* medicalLicenseLabel,
-                       QLineEdit* medicalLicenseEdit,
-                       QLabel* practiceYearsLabel,
-                       QLineEdit* practiceYearsEdit) const override;
+    bool isDoctor() const override { return true; }
 };
 
 BOOST_CLASS_EXPORT_KEY(DoctorAstronaut)

@@ -2,6 +2,8 @@
 
 #include "headers.h"
 
+class AstronautEditDialog;
+
 class Astronaut
 {
 private:
@@ -23,9 +25,6 @@ private:
         ar & specialization;
         ar & current_status;
     }
-
-protected:
-
 
 public:
     Astronaut();
@@ -55,41 +54,10 @@ public:
 
     virtual void drawInPainter(QPainter &painter, int &yPos, int rowHeight) const;
 
-    virtual std::shared_ptr<Astronaut> createFromUIFields(
-        const std::wstring& name,
-        const std::wstring& country,
-        int spaceflights,
-        int totalDays,
-        const std::wstring& specialization,
-        bool status) const;
+    virtual void updateDialogFields(AstronautEditDialog* dialog) const;
+    virtual void updateFromDialogFields(AstronautEditDialog* dialog);
 
-    virtual void updateFromUIFields(
-        const std::wstring& name,
-        const std::wstring& country,
-        int spaceflights,
-        int totalDays,
-        const std::wstring& specialization,
-        bool status);
-
-    virtual void getUIFields(std::wstring& name,
-                             std::wstring& country,
-                             int& spaceflights,
-                             int& totalDays,
-                             std::wstring& specialization,
-                             bool& status) const;
-
-    virtual void fillUIInputs(QLineEdit* nameEdit,
-                              QLineEdit* countryEdit,
-                              QLineEdit* specializationEdit,
-                              QLineEdit* spaceflightsEdit,
-                              QLineEdit* totalDaysEdit) const;
-
-    virtual void setupUIFields(QRadioButton* regularRadio,
-                               QRadioButton* doctorRadio,
-                               QLabel* medicalLicenseLabel,
-                               QLineEdit* medicalLicenseEdit,
-                               QLabel* practiceYearsLabel,
-                               QLineEdit* practiceYearsEdit) const;
+    virtual bool isDoctor() const { return false; }
 };
 
 BOOST_CLASS_EXPORT_KEY(Astronaut)

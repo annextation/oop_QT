@@ -1,5 +1,6 @@
 #include "astronaut.h"
 #include "utils.h"
+#include "AstronautEditDialog.h"
 
 using namespace std;
 
@@ -70,81 +71,29 @@ void Astronaut::drawInPainter(QPainter &painter, int &yPos, int rowHeight) const
     yPos += rowHeight;
 }
 
-std::shared_ptr<Astronaut> Astronaut::createFromUIFields(
-    const std::wstring& name,
-    const std::wstring& country,
-    int spaceflights,
-    int totalDays,
-    const std::wstring& specialization,
-    bool status) const
+void Astronaut::updateDialogFields(AstronautEditDialog* dialog) const
 {
-    return std::make_shared<Astronaut>(name, country, spaceflights, totalDays, specialization, status);
+    if (!dialog) return;
+
+    dialog->getNameEdit()->setText(QString::fromStdWString(get_name()));
+    dialog->getCountryEdit()->setText(QString::fromStdWString(get_country()));
+    dialog->getSpecializationEdit()->setText(QString::fromStdWString(get_specialization()));
+    dialog->getSpaceflightsEdit()->setText(QString::number(get_spaceflights_count()));
+    dialog->getTotalDaysEdit()->setText(QString::number(get_total_days_in_space()));
+
+    dialog->getMedicalLicenseEdit()->clear();
+    dialog->getPracticeYearsEdit()->clear();
+    dialog->getRegularRadio()->setChecked(true);
 }
 
-void Astronaut::updateFromUIFields(
-    const std::wstring& name,
-    const std::wstring& country,
-    int spaceflights,
-    int totalDays,
-    const std::wstring& specialization,
-    bool status)
+void Astronaut::updateFromDialogFields(AstronautEditDialog* dialog)
 {
-    // Этот метод внутри класса Astronaut, поэтому имеет доступ к private полям
-    this->name = name;
-    this->country = country;
-    this->spaceflights_count = spaceflights;
-    this->total_days_in_space = totalDays;
-    this->specialization = specialization;
-    this->current_status = status;
+    if (!dialog) return;
+
+    this->name = dialog->getNameEdit()->text().toStdWString();
+    this->country = dialog->getCountryEdit()->text().toStdWString();
+    this->specialization = dialog->getSpecializationEdit()->text().toStdWString();
+    this->spaceflights_count = dialog->getSpaceflightsEdit()->text().toInt();
+    this->total_days_in_space = dialog->getTotalDaysEdit()->text().toInt();
+    this->current_status = true;
 }
-
-void Astronaut::getUIFields(std::wstring& name,
-                            std::wstring& country,
-                            int& spaceflights,
-                            int& totalDays,
-                            std::wstring& specialization,
-                            bool& status) const
-{
-    name = this->name;
-    country = this->country;
-    spaceflights = this->spaceflights_count;
-    totalDays = this->total_days_in_space;
-    specialization = this->specialization;
-    status = this->current_status;
-}
-
-void Astronaut::fillUIInputs(QLineEdit* nameEdit,
-                             QLineEdit* countryEdit,
-                             QLineEdit* specializationEdit,
-                             QLineEdit* spaceflightsEdit,
-                             QLineEdit* totalDaysEdit) const
-{
-    if (nameEdit) nameEdit->setText(QString::fromStdWString(get_name()));
-    if (countryEdit) countryEdit->setText(QString::fromStdWString(get_country()));
-    if (specializationEdit) specializationEdit->setText(QString::fromStdWString(get_specialization()));
-    if (spaceflightsEdit) spaceflightsEdit->setText(QString::number(get_spaceflights_count()));
-    if (totalDaysEdit) totalDaysEdit->setText(QString::number(get_total_days_in_space()));
-}
-
-void Astronaut::setupUIFields(QRadioButton* regularRadio,
-                              QRadioButton* doctorRadio,
-                              QLabel* medicalLicenseLabel,
-                              QLineEdit* medicalLicenseEdit,
-                              QLabel* practiceYearsLabel,
-                              QLineEdit* practiceYearsEdit) const
-{
-    if (regularRadio) regularRadio->setChecked(true);
-    if (doctorRadio) doctorRadio->setChecked(false);
-
-    if (medicalLicenseLabel) medicalLicenseLabel->setVisible(false);
-    if (medicalLicenseEdit) {
-        medicalLicenseEdit->setVisible(false);
-        medicalLicenseEdit->clear();
-    }
-    if (practiceYearsLabel) practiceYearsLabel->setVisible(false);
-    if (practiceYearsEdit) {
-        practiceYearsEdit->setVisible(false);
-        practiceYearsEdit->clear();
-    }
-}
-

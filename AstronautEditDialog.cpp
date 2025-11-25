@@ -7,6 +7,17 @@ AstronautEditDialog::AstronautEditDialog(ISS* iss, QWidget *parent)
     iss(iss)
 {
     ui->setupUi(this);
+
+    nameEdit = ui->nameEdit;
+    countryEdit = ui->countryEdit;
+    specializationEdit = ui->specializationEdit;
+    spaceflightsEdit = ui->spaceflightsEdit;
+    totalDaysEdit = ui->totalDaysEdit;
+    medicalLicenseEdit = ui->medicalLicenseEdit;
+    practiceYearsEdit = ui->practiceYearsEdit;
+    regularAstronautRadio = ui->regularAstronautRadio;
+    doctorAstronautRadio = ui->doctorAstronautRadio;
+
     setupConnections();
     updateAstronautList();
 
@@ -62,18 +73,15 @@ void AstronautEditDialog::updateAstronautList()
     const auto& astronauts = iss->getAstronauts();
 
     size_t index = 0;
-    auto updateLambda = [&](const std::shared_ptr<Astronaut>& astronaut) {
+    for (const auto& astronaut : astronauts) {
         QString itemText = QString("%1. %2 [%3]")
         .arg(index + 1)
             .arg(QString::fromStdWString(astronaut->get_name()))
-            .arg(std::dynamic_pointer_cast<DoctorAstronaut>(astronaut) ?
-                     "Астронавт-врач" : "Обычный");
+            .arg(astronaut->isDoctor() ? "Астронавт-врач" : "Обычный");
 
         ui->astronautList->addItem(itemText);
         index++;
-    };
-
-    std::for_each(astronauts.begin(), astronauts.end(), updateLambda);
+    }
 }
 
 void AstronautEditDialog::clearInputFields()
@@ -95,129 +103,26 @@ void AstronautEditDialog::showDoctorFields(bool show)
     ui->practiceYearsEdit->setVisible(show);
 }
 
-void AstronautEditDialog::fillInputFields(const std::shared_ptr<Astronaut>& astronaut)
-{
-    if (!astronaut) return;
-
-    // Получаем базовые данные через публичные методы
-    std::wstring name, country, specialization;
-    int spaceflights, totalDays;
-    bool status;
-
-    astronaut->getUIFields(name, country, spaceflights, totalDays, specialization, status);
-
-    // Заполняем UI
-    ui->nameEdit->setText(QString::fromStdWString(name));
-    ui->countryEdit->setText(QString::fromStdWString(country));
-    ui->specializationEdit->setText(QString::fromStdWString(specialization));
-    ui->spaceflightsEdit->setText(QString::number(spaceflights));
-    ui->totalDaysEdit->setText(QString::number(totalDays));
-
-    // Настраиваем тип астронавта и медицинские поля
-    if (auto doctor = std::dynamic_pointer_cast<DoctorAstronaut>(astronaut)) {
-        ui->doctorAstronautRadio->setChecked(true);
-        showDoctorFields(true);
-
-        std::wstring license;
-        int practiceYears;
-        doctor->getMedicalData(license, practiceYears);
-
-        ui->medicalLicenseEdit->setText(QString::fromStdWString(license));
-        ui->practiceYearsEdit->setText(QString::number(practiceYears));
-    } else {
-        ui->regularAstronautRadio->setChecked(true);
-        showDoctorFields(false);
-    }
-}
-
-std::shared_ptr<Astronaut> AstronautEditDialog::createAstronautFromInput()
-{
-    // Получаем общие данные
-    std::wstring name = ui->nameEdit->text().toStdWString();
-    std::wstring country = ui->countryEdit->text().toStdWString();
-    std::wstring specialization = ui->specializationEdit->text().toStdWString();
-    int spaceflights = ui->spaceflightsEdit->text().isEmpty() ? 0 : ui->spaceflightsEdit->text().toInt();
-    int totalDays = ui->totalDaysEdit->text().isEmpty() ? 0 : ui->totalDaysEdit->text().toInt();
-    bool status = true;
-
-    // Создаем астронавта нужного типа
-    std::shared_ptr<Astronaut> astronaut;
-    if (ui->doctorAstronautRadio->isChecked()) {
-        astronaut = std::make_shared<DoctorAstronaut>()->createFromUIFields(
-            name, country, spaceflights, totalDays, specialization, status);
-
-        // Устанавливаем медицинские данные
-        std::wstring license = ui->medicalLicenseEdit->text().toStdWString();
-        int practiceYears = ui->practiceYearsEdit->text().isEmpty() ? 0 : ui->practiceYearsEdit->text().toInt();
-
-        if (auto doctor = std::dynamic_pointer_cast<DoctorAstronaut>(astronaut)) {
-            doctor->setMedicalData(license, practiceYears);
-        }
-    } else {
-        astronaut = std::make_shared<Astronaut>()->createFromUIFields(
-            name, country, spaceflights, totalDays, specialization, status);
-    }
-
-    return astronaut;
-}
-
-void AstronautEditDialog::updateSelectedAstronaut()
-{
-    int currentRow = ui->astronautList->currentRow();
-    if (currentRow >= 0 && currentRow < static_cast<int>(iss->getAstronautsCount())) {
-        auto& astronauts = const_cast<std::vector<std::shared_ptr<Astronaut>>&>(iss->getAstronauts());
-        auto astronaut = astronauts[currentRow];
-
-        std::wstring name = ui->nameEdit->text().toStdWString();
-        std::wstring country = ui->countryEdit->text().toStdWString();
-        std::wstring specialization = ui->specializationEdit->text().toStdWString();
-        int spaceflights = ui->spaceflightsEdit->text().isEmpty() ? 0 : ui->spaceflightsEdit->text().toInt();
-        int totalDays = ui->totalDaysEdit->text().isEmpty() ? 0 : ui->totalDaysEdit->text().toInt();
-        bool status = true;
-
-        astronaut->updateFromUIFields(name, country, spaceflights, totalDays, specialization, status);
-
-        if (auto doctor = std::dynamic_pointer_cast<DoctorAstronaut>(astronaut)) {
-            std::wstring license = ui->medicalLicenseEdit->text().toStdWString();
-            int practiceYears = ui->practiceYearsEdit->text().isEmpty() ? 0 : ui->practiceYearsEdit->text().toInt();
-            doctor->setMedicalData(license, practiceYears);
-        }
-
-        updateAstronautList();
-        ui->astronautList->setCurrentRow(currentRow);
-    }
-}
-
 void AstronautEditDialog::onAddRegularAstronautClicked()
 {
-    auto newAstronaut = std::make_shared<Astronaut>()->createFromUIFields(
+    auto newAstronaut = std::make_shared<Astronaut>(
         L"Новый астронавт", L"", 0, 0, L"", true);
     iss->addAstronaut(newAstronaut);
 
     updateAstronautList();
     int newIndex = ui->astronautList->count() - 1;
     ui->astronautList->setCurrentRow(newIndex);
-
-    clearInputFields();
-    ui->regularAstronautRadio->setChecked(true);
-    showDoctorFields(false);
-    ui->nameEdit->setFocus();
 }
 
 void AstronautEditDialog::onAddDoctorAstronautClicked()
 {
-    auto newAstronaut = std::make_shared<DoctorAstronaut>()->createFromUIFields(
-        L"Новый астронавт-врач", L"", 0, 0, L"", true);
+    auto newAstronaut = std::make_shared<DoctorAstronaut>(
+        L"Новый астронавт-врач", L"", 0, 0, L"", true, L"", 0);
     iss->addAstronaut(newAstronaut);
 
     updateAstronautList();
     int newIndex = ui->astronautList->count() - 1;
     ui->astronautList->setCurrentRow(newIndex);
-
-    clearInputFields();
-    ui->doctorAstronautRadio->setChecked(true);
-    showDoctorFields(true);
-    ui->nameEdit->setFocus();
 }
 
 void AstronautEditDialog::onDeleteButtonClicked()
@@ -245,6 +150,7 @@ void AstronautEditDialog::onDeleteButtonClicked()
             ui->astronautList->setCurrentRow(currentRow);
         } else {
             clearInputFields();
+            showDoctorFields(false);
         }
     }
 }
@@ -259,26 +165,31 @@ void AstronautEditDialog::onAstronautSelectionChanged()
     int currentRow = ui->astronautList->currentRow();
     if (currentRow >= 0 && currentRow < static_cast<int>(iss->getAstronautsCount())) {
         const auto& astronauts = iss->getAstronauts();
-        fillInputFields(astronauts[currentRow]);
+        auto astronaut = astronauts[currentRow];
+
+        astronaut->updateDialogFields(this);
+        showDoctorFields(astronaut->isDoctor());
     } else {
         clearInputFields();
+        showDoctorFields(false);
     }
 }
 
 void AstronautEditDialog::onAstronautTypeChanged()
 {
     showDoctorFields(ui->doctorAstronautRadio->isChecked());
-
-    int currentRow = ui->astronautList->currentRow();
-    if (currentRow >= 0 && currentRow < static_cast<int>(iss->getAstronautsCount())) {
-        updateSelectedAstronaut();
-    }
 }
 
 void AstronautEditDialog::onInputFieldChanged()
 {
     int currentRow = ui->astronautList->currentRow();
     if (currentRow >= 0 && currentRow < static_cast<int>(iss->getAstronautsCount())) {
-        updateSelectedAstronaut();
+        auto& astronauts = const_cast<std::vector<std::shared_ptr<Astronaut>>&>(iss->getAstronauts());
+        auto astronaut = astronauts[currentRow];
+
+        astronaut->updateFromDialogFields(this);
+
+        updateAstronautList();
+        ui->astronautList->setCurrentRow(currentRow);
     }
 }
